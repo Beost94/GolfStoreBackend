@@ -1,11 +1,15 @@
 package com.GolfStore.backend.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PageResponseDTO<T> {
     private List<T> content;
     private int pageNumber;
@@ -15,13 +19,14 @@ public class PageResponseDTO<T> {
     private boolean last;
 
     public static <T> PageResponseDTO<T> of(Page<?> page, List<T> content) {
-        PageResponseDTO<T> response = new PageResponseDTO<>();
-        response.setContent(content);
-        response.setPageNumber(page.getNumber());
-        response.setPageSize(page.getSize());
-        response.setTotalElements(page.getTotalElements());
-        response.setTotalPages(page.getTotalPages());
-        response.setLast(page.isLast());
-        return response;
+        return new PageResponseDTO<>(
+                content,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast()
+        );
     }
 }
+

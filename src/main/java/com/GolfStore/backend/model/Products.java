@@ -1,27 +1,43 @@
 package com.GolfStore.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
-@Getter @Setter // Lombok automatically generates getters & setters
-@NoArgsConstructor // Lombok creates a default constructor
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Products {
 
-    @Id /* Dette setter at productid er primærnøkkelen i tabellen.  */
-    @GeneratedValue(strategy = GenerationType.IDENTITY) /* Dette forteller om hvordan primærnøkkelen blir generert,
-    altså den blir auto-generert */
-    private int productid;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "productid")
+    private Integer productId;
 
-    private String productname;
-    private Double price;
-    private String description;
+    @Column(name = "productname", nullable = false)
+    private String productName;
 
+    @Column(name = "price", nullable = false)
+    private BigDecimal price;
 
     @ManyToOne
     @JoinColumn(name = "categoryid", nullable = false)
-    private ProductCategory categoryid;
+    private Category category;
+
+    @Column(name = "description")
+    private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "brandid")
+    private Brand brand;
+
+    @Column(name = "has_variants")
+    private Boolean hasVariants;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Images> images;
 }
