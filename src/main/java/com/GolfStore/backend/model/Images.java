@@ -22,5 +22,5 @@ public class Images {
 
     @ManyToOne
     @JoinColumn(name = "productid")
-    private Products product;
+    private Product product;
 }

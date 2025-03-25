@@ -6,6 +6,8 @@ import com.GolfStore.backend.dto.ProductDetailDTO;
 import com.GolfStore.backend.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/products")
 @CrossOrigin(origins = "*")
@@ -17,23 +19,27 @@ public class ProductController {
         this.productService = productService;
     }
 
-    /**
-     * Henter produkter for menugrid basert på kategori.
-     */
-    @GetMapping
+
+    @GetMapping("/MenuGrid")
     public PageResponseDTO<MenuGridProductDTO> getProductsForMenuGrid(
-            @RequestParam String category,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) List<String> size,
+            @RequestParam(required = false) List<String> color,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-        return productService.getProductsForMenuGrid(category, page, size);
+            @RequestParam(defaultValue = "12") int sizePerPage
+    ) {
+        return productService.getProductsForMenuGrid(category, brand, size, color, page, sizePerPage);
     }
 
 
     /**
      * Henter full detaljert informasjon for et spesifikt produkt.
      */
-    @GetMapping("/{productId}")
+    @GetMapping("/detail/{productId}")
     public ProductDetailDTO getProductForProductDetail(@PathVariable Integer productId) {
         return productService.getProductsForProductDetail(productId);
     }
+
+
 }

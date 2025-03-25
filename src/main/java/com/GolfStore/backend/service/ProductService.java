@@ -3,13 +3,15 @@ package com.GolfStore.backend.service;
 import com.GolfStore.backend.dto.MenuGridProductDTO;
 import com.GolfStore.backend.dto.PageResponseDTO;
 import com.GolfStore.backend.dto.ProductDetailDTO;
-import com.GolfStore.backend.model.Products;
+import com.GolfStore.backend.model.Images;
+import com.GolfStore.backend.model.Product;
 import com.GolfStore.backend.repository.ProductRepository;
+import com.GolfStore.backend.specifications.ProductSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import com.GolfStore.backend.model.Images;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +25,37 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public PageResponseDTO<MenuGridProductDTO> getProductsForMenuGrid(String category, int page, int size) {
+    public PageResponseDTO<MenuGridProductDTO> getProductsForMenuGrid(
+            String category,
+            String brand,
+            List<String> sizes,
+            List<String> colors,
+            int page,
+            int size
+    )
+    {
+
+        Specification<Product> spec = Specification.where(null);
+
+        if (category != null) {
+            spec = spec.and(ProductSpecification.hasCategory(category));
+        }
+
+        if (brand != null) {
+            spec = spec.and(ProductSpecification.hasBrand(brand));
+        }
+
+        if (sizes != null && !sizes.isEmpty()) {
+            spec = spec.and(ProductSpecification.hasVariantAttribute("Size", sizes));
+        }
+
+        if (colors != null && !colors.isEmpty()) {
+            spec = spec.and(ProductSpecification.hasVariantAttribute("Color", colors));
+        }
+
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<Products> productPage = productRepository.findByCategory_CategoryName(category, pageable);
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
 
         List<MenuGridProductDTO> dtos = productPage.getContent().stream()
                 .map(this::convertToMenuGridDTO)
@@ -35,14 +65,14 @@ public class ProductService {
     }
 
     public ProductDetailDTO getProductsForProductDetail(Integer productId) {
-        Optional<Products> productOpt = productRepository.findById(productId);
+        Optional<Product> productOpt = productRepository.findById(productId);
         if (productOpt.isEmpty()) {
             throw new IllegalArgumentException("Produkt ikke funnet for ID: " + productId);
         }
         return convertToProductDetailDTO(productOpt.get());
     }
 
-    private MenuGridProductDTO convertToMenuGridDTO(Products product) {
+    private MenuGridProductDTO convertToMenuGridDTO(Product product) {
         return new MenuGridProductDTO(
                 product.getProductId(),
                 product.getProductName(),
@@ -52,7 +82,7 @@ public class ProductService {
         );
     }
 
-    private ProductDetailDTO convertToProductDetailDTO(Products product) {
+    private ProductDetailDTO convertToProductDetailDTO(Product product) {
         return new ProductDetailDTO(
                 product.getProductId(),
                 product.getProductName(),

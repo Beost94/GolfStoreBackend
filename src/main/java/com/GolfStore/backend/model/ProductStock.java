@@ -17,11 +17,11 @@ public class ProductStock {
 
     @ManyToOne
     @JoinColumn(name = "productid", nullable = false)
-    private Products product;
+    private Product product;
 
     @ManyToOne
     @JoinColumn(name = "variantid")
-    private ProductVariants variant;
+    private ProductVariant variant;
 
     @Column(name = "stockcount", nullable = false)
     private Integer stockCount;
