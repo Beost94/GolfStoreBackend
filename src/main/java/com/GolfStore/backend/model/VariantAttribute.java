@@ -11,15 +11,15 @@ public class VariantAttribute {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "variant_attributeid")
-    private Integer variantAttributeId; // ✅ Capital "I" for consistency
+    private Integer variantAttributeId; //
 
     @ManyToOne
     @JoinColumn(name = "variantid")
-    private ProductVariant productVariant; // ✅ Singular class name
+    private ProductVariant productVariant; //
 
     @ManyToOne
     @JoinColumn(name = "filter_optionid")
-    private FilterOption filterOption; // ✅ Singular class name
+    private FilterOption filterOption; //
 
     @ManyToOne
     @JoinColumn(name = "filter_valueid")

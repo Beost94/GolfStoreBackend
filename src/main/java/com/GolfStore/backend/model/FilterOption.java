@@ -8,7 +8,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "filter_options")
-public class FilterOption { // ✅ Singular name (one row = one FilterOption)
+public class FilterOption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +18,7 @@ public class FilterOption { // ✅ Singular name (one row = one FilterOption)
     @Column(name = "filter_name")
     private String filterName;
 
-    @OneToMany(mappedBy = "filterOption") // ✅ Matches field name in FilterValue entity
+    @OneToMany(mappedBy = "filterOption")
     private List<FilterValue> filterValues;
 }
 
