@@ -25,7 +25,7 @@ public class User {
     @Column(name = "lastname")
     private String lastName;
     @Column(name = "adress")
-    private String adress;
+    private String address;
     @Column(name = "phone")
     private String phone;
 

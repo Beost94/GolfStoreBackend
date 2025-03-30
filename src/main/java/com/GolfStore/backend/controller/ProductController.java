@@ -1,11 +1,14 @@
 package com.GolfStore.backend.controller;
 
+import com.GolfStore.backend.dto.FilterOptionDTO;
 import com.GolfStore.backend.dto.MenuGridProductDTO;
 import com.GolfStore.backend.dto.PageResponseDTO;
 import com.GolfStore.backend.dto.ProductDetailDTO;
+import com.GolfStore.backend.repository.CategoryFilterOptionRepository;
 import com.GolfStore.backend.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -15,8 +18,10 @@ public class ProductController {
 
     private final ProductService productService;
 
-    public ProductController(ProductService productService) {
+
+    public ProductController(ProductService productService, CategoryFilterOptionRepository categoryFilterOptionRepository) {
         this.productService = productService;
+
     }
 
 
@@ -26,10 +31,12 @@ public class ProductController {
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) List<String> size,
             @RequestParam(required = false) List<String> color,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int sizePerPage
     ) {
-        return productService.getProductsForMenuGrid(category, brand, size, color, page, sizePerPage);
+        return productService.getProductsForMenuGrid(category, brand, minPrice, maxPrice, size, color, page, sizePerPage);
     }
 
 
@@ -40,6 +47,14 @@ public class ProductController {
     public ProductDetailDTO getProductForProductDetail(@PathVariable Integer productId) {
         return productService.getProductsForProductDetail(productId);
     }
+    @GetMapping("/filteroptions")
+    public List<FilterOptionDTO> getFilterOptionsForCategory(@RequestParam String category){
+        return productService.getFilterOptionsForCategory(category);
+
+    }
+
+
+
 
 
 }

@@ -54,7 +54,7 @@ public class UserService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                user.getAdress(),
+                user.getAddress(),
                 user.getPhone()
         );
     }
@@ -65,7 +65,7 @@ public class UserService {
         newUser.setEmail(jwt.getClaim("email"));
         newUser.setFirstName(jwt.getClaim("given_name"));
         newUser.setLastName(jwt.getClaim("family_name"));
-        newUser.setAdress(jwt.getClaim("adress"));
+        newUser.setAddress(jwt.getClaim("adress"));
 
         ShoppingCart cart = new ShoppingCart();
         cart.setUser(newUser);

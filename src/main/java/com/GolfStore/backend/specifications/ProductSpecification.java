@@ -59,8 +59,6 @@ public class ProductSpecification {
             // Joiner ProductVariant med VariantAttribute
             Join<Object, Object> attribute = variant.join("attributes", JoinType.INNER);
             // Joiner VariantAttribute med FilterOption
-
-
             Join<Object, Object> option = attribute.join("filterOption", JoinType.INNER);
             // Joiner VariantAttribute med FilterValue
             Join<Object, Object> value = attribute.join("filterValue", JoinType.INNER);
