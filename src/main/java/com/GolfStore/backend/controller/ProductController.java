@@ -4,11 +4,9 @@ import com.GolfStore.backend.dto.FilterOptionDTO;
 import com.GolfStore.backend.dto.MenuGridProductDTO;
 import com.GolfStore.backend.dto.PageResponseDTO;
 import com.GolfStore.backend.dto.ProductDetailDTO;
-import com.GolfStore.backend.repository.CategoryFilterOptionRepository;
 import com.GolfStore.backend.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -19,7 +17,7 @@ public class ProductController {
     private final ProductService productService;
 
 
-    public ProductController(ProductService productService, CategoryFilterOptionRepository categoryFilterOptionRepository) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
 
     }
@@ -31,8 +29,8 @@ public class ProductController {
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) List<String> size,
             @RequestParam(required = false) List<String> color,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int sizePerPage
     ) {

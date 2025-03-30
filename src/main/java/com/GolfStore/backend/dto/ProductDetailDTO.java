@@ -1,7 +1,9 @@
 package com.GolfStore.backend.dto;
 
-import lombok.*;
-import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 @Data
@@ -10,7 +12,7 @@ import java.util.List;
 public class ProductDetailDTO {
     private Integer productId;
     private String productName;
-    private BigDecimal price;
+    private Double price;
     private String description;
     private String brandName;
     private String categoryName;

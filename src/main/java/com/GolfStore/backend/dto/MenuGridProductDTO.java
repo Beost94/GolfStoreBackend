@@ -1,7 +1,8 @@
 package com.GolfStore.backend.dto;
 
-import lombok.*;
-import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -9,7 +10,7 @@ import java.math.BigDecimal;
 public class MenuGridProductDTO {
     private Integer productId;
     private String productName;
-    private BigDecimal price;
+    private Double price;
     private String brandName;
     private String imageUrl; // Kun ett bilde for visning
 }

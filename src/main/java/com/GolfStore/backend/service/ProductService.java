@@ -18,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,8 +35,8 @@ public class ProductService {
     public PageResponseDTO<MenuGridProductDTO> getProductsForMenuGrid(
             String category,
             String brand,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
+            Double minPrice,
+            Double maxPrice,
             List<String> sizes,
             List<String> colors,
             int page,
@@ -63,8 +62,8 @@ public class ProductService {
         if (colors != null && !colors.isEmpty()) {
             spec = spec.and(ProductSpecification.hasVariantAttribute("Color", colors));
         }
-        if (minPrice != null){
-            spec = spec.and(ProductSpecification.has)
+        if (minPrice != null || maxPrice != null){
+            spec = spec.and(ProductSpecification.hasPriceBetween(minPrice,maxPrice));
 
     }
 
