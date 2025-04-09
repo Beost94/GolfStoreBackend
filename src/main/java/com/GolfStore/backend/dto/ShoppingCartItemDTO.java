@@ -13,4 +13,5 @@ public class ShoppingCartItemDTO {
     private Integer variantId;
     private String productName;
     private Double price;
+
 }

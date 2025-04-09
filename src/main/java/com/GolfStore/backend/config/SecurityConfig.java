@@ -49,6 +49,7 @@ public class SecurityConfig {
 
 
 
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
