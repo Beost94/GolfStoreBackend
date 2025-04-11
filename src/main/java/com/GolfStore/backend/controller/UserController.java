@@ -21,7 +21,16 @@ public class UserController {
     public UserDTO getOrCreateUser(@AuthenticationPrincipal Jwt jwt) {
         return userService.getOrCreateUser(jwt);
     }
+
+    @GetMapping("/forfaen")
+    public String testCart(@AuthenticationPrincipal Jwt jwt) {
+        return "hore";
+    }
+
 }
+
+
+
 
 
 

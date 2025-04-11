@@ -6,6 +6,7 @@ import com.GolfStore.backend.dto.UpdateCartItemRequest;
 import com.GolfStore.backend.model.*;
 import com.GolfStore.backend.repository.ProductRepository;
 import com.GolfStore.backend.repository.ShoppingCartItemRepository;
+import com.GolfStore.backend.repository.StockRepository;
 import com.GolfStore.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class ShoppingCartService {
     private final ShoppingCartItemRepository shoppingCartItemRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final StockRepository stockRepository;
 
 
     public ShoppingCartDTO getShoppingCart(UUID keycloakId){
@@ -47,20 +49,14 @@ public class ShoppingCartService {
                     product.getProductId(),
                     variant.getVariantId(),
                     product.getProductName(),
-                    product.getPrice()
+                    product.getPrice(),
+                    item.getAmount()
             ));
         }
         return shoppingCartItemDTOS;
     }
 
     public void updateCartItem(UUID keycloakId, UpdateCartItemRequest request) {
-
-        🚦 Neste steg:
-
-        Nå kan du bruke stockRepository.findStockCountByVariantId(variantId) direkte i updateCartItem(...) for å sammenligne mot amount.
-
-        Vil du at vi bygger inn den sjekken nå i "add"-blokken?
-
 
 
         User user = userRepository.findById(keycloakId)
@@ -83,8 +79,12 @@ public class ShoppingCartService {
             shoppingCartItemRepository.save(newItem);
         } else if (item != null) {
             if (request.getAction().equalsIgnoreCase("add")) {
-                item.setAmount(item.getAmount() + 1);
-                shoppingCartItemRepository.save(item);
+                Integer maxAmount = stockRepository.findStockCountByVariantId(request.getVariantId());
+                if (maxAmount != null && maxAmount > item.getAmount()) {
+                    item.setAmount(item.getAmount() + 1);
+                    shoppingCartItemRepository.save(item);
+                }
+
             } else if (request.getAction().equalsIgnoreCase("subtract")) {
                 int updatedAmount = item.getAmount() - 1;
                 if (updatedAmount > 0) {

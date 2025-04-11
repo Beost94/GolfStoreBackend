@@ -11,6 +11,7 @@ import com.GolfStore.backend.model.Product;
 import com.GolfStore.backend.repository.CategoryFilterOptionRepository;
 import com.GolfStore.backend.repository.ProductRepository;
 import com.GolfStore.backend.specifications.ProductSpecification;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,8 +31,6 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryFilterOptionRepository categoryFilterOptionRepository;
 
-
-
     public PageResponseDTO<MenuGridProductDTO> getProductsForMenuGrid(
             String category,
             String brand,
@@ -41,51 +40,61 @@ public class ProductService {
             List<String> colors,
             int page,
             int size
-    )
-    {
+    ) {
 
-        Specification<Product> spec = Specification.where(null);
+        try {
+            Specification<Product> spec = Specification.where(null);
+            if (category != null) {
+                spec = spec.and(ProductSpecification.hasCategory(category));
+            }
 
-        if (category != null) {
-            spec = spec.and(ProductSpecification.hasCategory(category));
+            if (brand != null) {
+                spec = spec.and(ProductSpecification.hasBrand(brand));
+            }
+
+            if (sizes != null && !sizes.isEmpty()) {
+                spec = spec.and(ProductSpecification.hasVariantAttribute("Size", sizes));
+            }
+
+            if (colors != null && !colors.isEmpty()) {
+                spec = spec.and(ProductSpecification.hasVariantAttribute("Color", colors));
+            }
+            if (minPrice != null || maxPrice != null) {
+                spec = spec.and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
+
+            }
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+
+
+            List<MenuGridProductDTO> dtos = productPage.getContent().stream()
+                    .map(this::convertToMenuGridDTO)
+                    .collect(Collectors.toList());
+
+            return PageResponseDTO.of(productPage, dtos);
         }
-
-        if (brand != null) {
-            spec = spec.and(ProductSpecification.hasBrand(brand));
+        catch (EntityNotFoundException e){
+            throw e;
         }
-
-        if (sizes != null && !sizes.isEmpty()) {
-            spec = spec.and(ProductSpecification.hasVariantAttribute("Size", sizes));
+        catch (Exception e){
+            throw new RuntimeException("Something went wrong fetching product", e);
         }
-
-        if (colors != null && !colors.isEmpty()) {
-            spec = spec.and(ProductSpecification.hasVariantAttribute("Color", colors));
-        }
-        if (minPrice != null || maxPrice != null){
-            spec = spec.and(ProductSpecification.hasPriceBetween(minPrice,maxPrice));
-
     }
 
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Product> productPage = productRepository.findAll(spec, pageable);
-
-        List<MenuGridProductDTO> dtos = productPage.getContent().stream()
-                .map(this::convertToMenuGridDTO)
-                .collect(Collectors.toList());
-
-        return PageResponseDTO.of(productPage, dtos);
-    }
 
     public ProductDetailDTO getProductsForProductDetail(Integer productId) {
         Optional<Product> productOpt = productRepository.findById(productId);
         if (productOpt.isEmpty()) {
-            throw new IllegalArgumentException("Produkt ikke funnet for ID: " + productId);
+            throw new EntityNotFoundException("Produkt ikke funnet for ID: " + productId);
         }
         return convertToProductDetailDTO(productOpt.get());
     }
 
     private MenuGridProductDTO convertToMenuGridDTO(Product product) {
+        if(product == null){
+            throw new IllegalArgumentException("Product cant be null");
+        }
         return new MenuGridProductDTO(
                 product.getProductId(),
                 product.getProductName(),
@@ -96,6 +105,9 @@ public class ProductService {
     }
 
     private ProductDetailDTO convertToProductDetailDTO(Product product) {
+        if (product == null) {
+            throw new IllegalArgumentException("Product cant be null");
+        }
         return new ProductDetailDTO(
                 product.getProductId(),
                 product.getProductName(),
@@ -127,15 +139,16 @@ public class ProductService {
     }
 
     public List<FilterOptionDTO> getFilterOptionsForCategory(String category){
+        if (category == null || category.isEmpty()){
+            throw new IllegalArgumentException("Category can not be empty");
+        }
         List<CategoryFilterOption> categoryFilterOption = categoryFilterOptionRepository.findByCategory_CategoryName(category);
+        if(categoryFilterOption.isEmpty()){
+            throw new EntityNotFoundException("No filter options found for category: " + category);
+        }
 
         return convertToFilterOptionDTO(categoryFilterOption);
 
         }
-
-
-
-
-
     }
 

@@ -38,21 +38,14 @@ public class SecurityConfig {
 
                 // URL-based security rules
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public endpoints - no authentication required
-                        .requestMatchers("/products/**", "/", "/index.html","/error").permitAll()
-
-                        // User endpoints - require USER role
+                        .requestMatchers("/hello").permitAll() // ✅ MOVE THIS UP
+                        .requestMatchers("/products/**", "/", "/index.html", "/error").permitAll()
                         .requestMatchers("/user/**").hasRole("USER")
-
-                        // Admin endpoints - require ADMIN role
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-
-
-
-
-                        // All other endpoints require authentication
-                        .anyRequest().authenticated()
+                        .anyRequest().authenticated() // ⛔ Catch-all at the end
                 )
+
+
 
                 // Configure JWT authentication
                 .oauth2ResourceServer(oauth2 -> oauth2
