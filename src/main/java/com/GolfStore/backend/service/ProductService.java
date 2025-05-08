@@ -1,9 +1,6 @@
 package com.GolfStore.backend.service;
 
-import com.GolfStore.backend.dto.FilterOptionDTO;
-import com.GolfStore.backend.dto.MenuGridProductDTO;
-import com.GolfStore.backend.dto.PageResponseDTO;
-import com.GolfStore.backend.dto.ProductDetailDTO;
+import com.GolfStore.backend.dto.*;
 import com.GolfStore.backend.model.CategoryFilterOption;
 import com.GolfStore.backend.model.FilterValue;
 import com.GolfStore.backend.model.Images;
@@ -32,35 +29,29 @@ public class ProductService {
     private final CategoryFilterOptionRepository categoryFilterOptionRepository;
 
     public PageResponseDTO<MenuGridProductDTO> getProductsForMenuGrid(
-            String category,
-            String brand,
-            Double minPrice,
-            Double maxPrice,
-            List<String> sizes,
-            List<String> colors,
+            ProductSearchCriteriaDTO criteria,
             int page,
             int size
     ) {
-
         try {
             Specification<Product> spec = Specification.where(null);
-            if (category != null) {
-                spec = spec.and(ProductSpecification.hasCategory(category));
+            if (criteria.getCategory() != null) {
+                spec = spec.and(ProductSpecification.hasCategory(criteria.getCategory()));
             }
 
-            if (brand != null) {
-                spec = spec.and(ProductSpecification.hasBrand(brand));
+            if (criteria.getBrand() != null && !criteria.getBrand().isEmpty()) {
+                spec = spec.and(ProductSpecification.hasAnyBrand(criteria.getBrand()));
             }
 
-            if (sizes != null && !sizes.isEmpty()) {
-                spec = spec.and(ProductSpecification.hasVariantAttribute("Size", sizes));
+            if (criteria.getSize() != null && !criteria.getSize().isEmpty()) {
+                spec = spec.and(ProductSpecification.hasVariantAttribute("Size", criteria.getSize()));
             }
 
-            if (colors != null && !colors.isEmpty()) {
-                spec = spec.and(ProductSpecification.hasVariantAttribute("Color", colors));
+            if (criteria.getColor() != null && !criteria.getColor().isEmpty()) {
+                spec = spec.and(ProductSpecification.hasVariantAttribute("Color", criteria.getColor()));
             }
-            if (minPrice != null || maxPrice != null) {
-                spec = spec.and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
+            if (criteria.getMinPrice() != null || criteria.getMaxPrice() != null) {
+                spec = spec.and(ProductSpecification.hasPriceBetween(criteria.getMinPrice(), criteria.getMaxPrice()));
 
             }
             Pageable pageable = PageRequest.of(page, size);
@@ -81,8 +72,6 @@ public class ProductService {
             throw new RuntimeException("Something went wrong fetching product", e);
         }
     }
-
-
     public ProductDetailDTO getProductsForProductDetail(Integer productId) {
         Optional<Product> productOpt = productRepository.findById(productId);
         if (productOpt.isEmpty()) {

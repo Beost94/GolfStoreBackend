@@ -4,10 +4,10 @@ import com.GolfStore.backend.dto.ShoppingCartDTO;
 import com.GolfStore.backend.dto.ShoppingCartItemDTO;
 import com.GolfStore.backend.dto.UpdateCartItemRequest;
 import com.GolfStore.backend.model.*;
-import com.GolfStore.backend.repository.ProductRepository;
 import com.GolfStore.backend.repository.ShoppingCartItemRepository;
 import com.GolfStore.backend.repository.StockRepository;
 import com.GolfStore.backend.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,17 +21,23 @@ public class ShoppingCartService {
 
     private final ShoppingCartItemRepository shoppingCartItemRepository;
     private final UserRepository userRepository;
-    private final ProductRepository productRepository;
     private final StockRepository stockRepository;
 
 
     public ShoppingCartDTO getShoppingCart(UUID keycloakId){
         User user = userRepository.findById(keycloakId).orElse(null);
-        ShoppingCart cart = user.getShoppingCart();
+        if(user == null){
+            throw new EntityNotFoundException("User not found with given ID");
+        }
+            ShoppingCart cart = user.getShoppingCart();
+            if(cart == null){
+                throw new EntityNotFoundException("No Shoppingcart registered to that user");
+            }
 
-        List<ShoppingCartItem> items = shoppingCartItemRepository.findByShoppingCart_User_KeycloakId(keycloakId);
+            List<ShoppingCartItem> items = shoppingCartItemRepository.findByShoppingCart_User_KeycloakId(keycloakId);
 
-        return convertToShoppingCartDTO(cart,items);
+            return convertToShoppingCartDTO(cart, items);
+
     }
 
     public ShoppingCartDTO convertToShoppingCartDTO(ShoppingCart cart, List<ShoppingCartItem> shoppingCartItems) {
@@ -58,16 +64,15 @@ public class ShoppingCartService {
 
     public void updateCartItem(UUID keycloakId, UpdateCartItemRequest request) {
 
-
         User user = userRepository.findById(keycloakId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         ShoppingCart shoppingCart = user.getShoppingCart();
         ShoppingCartItemKey itemKey = new ShoppingCartItemKey(shoppingCart.getShoppingCartId(), request.getVariantId());
         ShoppingCartItem item = shoppingCartItemRepository.findById(itemKey).orElse(null);
 
         if (item == null && request.getAction().equalsIgnoreCase("add")) {
-            // Opprett ny vare i handlekurven
+
             ProductVariant variant = new ProductVariant();
             variant.setVariantId(request.getVariantId());
 
@@ -77,6 +82,7 @@ public class ShoppingCartService {
             newItem.setProductVariant(variant);
             newItem.setAmount(1);
             shoppingCartItemRepository.save(newItem);
+
         } else if (item != null) {
             if (request.getAction().equalsIgnoreCase("add")) {
                 Integer maxAmount = stockRepository.findStockCountByVariantId(request.getVariantId());
@@ -96,20 +102,8 @@ public class ShoppingCartService {
             }
         }
     }
-
-
-
-
-
-
     }
 
-    /* 1. Bruker trykker på legg til produkt. Sender en request til endpointet post request i controller.
-       1.1 - Dette sender da variantId og token. Controller kaller da en metode i service layer med variantid
-       på produktet som skal legges til, og en token som forteller hvilken brukers handlekurv dette skal legges til i.
-       Service må da finne riktig handlekurv, sende riktig produkt og kalle repository som legger til en post i shoppingcartitems.
-
-       2. */
 
 
 

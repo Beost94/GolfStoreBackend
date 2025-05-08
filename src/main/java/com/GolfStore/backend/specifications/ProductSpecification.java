@@ -28,11 +28,15 @@ public class ProductSpecification {
                 category != null ? cb.equal(root.get("category").get("categoryName"), category) : null;
     }
 
-    public static Specification<Product> hasBrand(String brandName) {
-        return (root, query, cb) ->
-                brandName != null ? cb.equal(root.get("brand").get("brandName"), brandName) : null;
-
+    public static Specification<Product> hasAnyBrand(List<String> brandNames) {
+        return (root, query, cb) -> {
+            if (brandNames == null || brandNames.isEmpty()) {
+                return null;
+            }
+            return root.get("brand").get("brandName").in(brandNames);
+        };
     }
+
 
     public static Specification<Product> hasPriceBetween(Double minPrice, Double maxPrice) {
         return (root, query, cb) -> {
