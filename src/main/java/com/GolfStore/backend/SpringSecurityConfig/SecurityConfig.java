@@ -1,4 +1,4 @@
-package com.GolfStore.backend.config;
+package com.GolfStore.backend.SpringSecurityConfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,12 +57,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Creates a custom JWT authentication converter that extracts roles from Keycloak tokens.
-     * This converter will map Keycloak's role structure to Spring Security authorities.
-     *
-     * @return A JwtAuthenticationConverter configured with the KeycloakRoleConverter
-     */
+
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
