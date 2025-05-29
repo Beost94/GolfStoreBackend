@@ -19,7 +19,7 @@ import java.util.List;
     - De velger ingen ytterligere kriterier.
     - I frontend blir det da dynamisk generert query parametere i endpointet.
         - For eksempel: http://localhost:8080/products/MenuGrid?category=Tshirt&Brand=Adidas&Brand=Nike
-            - "?category=Tshirt&Brand=Adidas&Brand=Nike" er parameterne som blir generert.
+            - "?category=Tshirt&Brand=Adidas&Brand=Nike" er parameterne.
     - ProductController mottar da disse parameterne i endpointet, og mapper disse inn i en DTO som heter ProductSearchCriteriaDTO.
     - ProductSearchCriteriaDTO er et objekt som inneholder alle kriteriene som er mulig for produktene og ser slik ut:
     -   private String category;
@@ -28,14 +28,7 @@ import java.util.List;
         private List<String> color;
         private Double minPrice;
         private Double maxPrice;
-    - Når endpointet har mottatt forespørselen med parameterne, trekker controlleren ut parameterne, og sender det videre til en metode iProductService kalt getProductsForMenuGrid.
-    - getProductsForMenuGrid bruker da en metode fra ProductSpecification(denne klassen) kalt ProductCriteriaBuilder, til å lage en custom query basert på productSearchCriteriaDTO.
-    - ProductCriteriaBuilder bygger da altså spørringen som skal brukes til å finne produktene som har de kriteriene man ønsker.
-        - ProductCriteriaBuilder er også en nullsjekker på en måte. Den tar imot productSearchCriteriaDTO, og ser hvilken av attributtene som har en verdi.
-            - Hvis et attributt har en verdi, kjøres en egen metode(se under feks: hasCategory, hasPriceBetween) for det attributtet, som inneholder tabellnavnet og søkenøkkelen. Disse egne metodene er byggeklossene til spørringen
-                - For eksempel. Hvis attributtet cateogry har en verdi, la oss si "category": "Tshirt". Da legges det til en WHERE clause i spørringen, med WHERE category.categoryName = 'Tshirt'
-       - Hvis attributtet har null verdi, skippes dette, og den legger ikke til en WHERE clause.
-    - Kort forklart. ProductCriteria builder bruker "has" metodene til å dynamisk bygge en spørring, basert på hva slags verdier den får fra productSearcCriteriaDTO.
+    - Når
 
 
  */
