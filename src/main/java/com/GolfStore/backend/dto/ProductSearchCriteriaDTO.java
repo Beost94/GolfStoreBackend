@@ -16,4 +16,5 @@ public class ProductSearchCriteriaDTO {
     private List<String> color;
     private Double minPrice;
     private Double maxPrice;
+    private String search;
 }

@@ -105,6 +105,14 @@ public class ProductSpecification {
         };
     }
 
+    // Filtrer produkter som inneholder søkeordet i navnet. lagt til av Lars
+    public static Specification<Product> hasSearchTerm(String search) {
+        return (root, query, cb) -> {
+            String likePattern = "%" + search.toLowerCase() + "%";
+            return cb.like(cb.lower(root.get("productName")), likePattern);
+        };
+    }
+
 
     //Specification builder/Criteria builder
     public static Specification<Product> ProductCriteriaBuilder(ProductSearchCriteriaDTO criteria) {
@@ -127,6 +135,9 @@ public class ProductSpecification {
         }
         if (criteria.getMinPrice() != null || criteria.getMaxPrice() != null) {
             spec = spec.and(ProductSpecification.hasPriceBetween(criteria.getMinPrice(), criteria.getMaxPrice()));
+        }
+        if (criteria.getSearch() != null && !criteria.getSearch().isEmpty()) {
+            spec = spec.and(ProductSpecification.hasSearchTerm(criteria.getSearch()));
         }
         return spec;
 
