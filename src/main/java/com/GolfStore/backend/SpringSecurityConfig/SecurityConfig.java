@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/products/**", "/", "/index.html", "/error").permitAll()
                         .requestMatchers("/user/**").hasRole("USER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/ShoppingCart/**").hasRole("USER")
                         .anyRequest().authenticated() // ⛔ Catch-all at the end
                 )
 
