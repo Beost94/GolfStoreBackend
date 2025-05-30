@@ -1,4 +1,4 @@
-package com.GolfStore.backend.config;
+package com.GolfStore.backend.SpringSecurityConfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,20 +38,14 @@ public class SecurityConfig {
 
                 // URL-based security rules
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public endpoints - no authentication required
-                        .requestMatchers("/products/**", "/", "/index.html","/error").permitAll()
-
-                        // User endpoints - require USER role
+                        .requestMatchers("/hello").permitAll() // ✅ MOVE THIS UP
+                        .requestMatchers("/products/**", "/", "/index.html", "/error").permitAll()
                         .requestMatchers("/user/**").hasRole("USER")
-
-                        // Admin endpoints - require ADMIN role
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-
-
-
-                        // All other endpoints require authentication
-                        .anyRequest().authenticated()
+                        .anyRequest().authenticated() // ⛔ Catch-all at the end
                 )
+
+
 
                 // Configure JWT authentication
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -63,12 +57,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Creates a custom JWT authentication converter that extracts roles from Keycloak tokens.
-     * This converter will map Keycloak's role structure to Spring Security authorities.
-     *
-     * @return A JwtAuthenticationConverter configured with the KeycloakRoleConverter
-     */
+
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();

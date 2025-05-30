@@ -47,7 +47,6 @@ public class UserService {
         });
         return convertToDTO(user);
     }
-
     public UserDTO convertToDTO(User user) {
         return new UserDTO(
                 user.getKeycloakId(),

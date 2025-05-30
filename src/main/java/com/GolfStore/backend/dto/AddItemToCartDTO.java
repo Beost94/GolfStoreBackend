@@ -2,15 +2,17 @@ package com.GolfStore.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
-public class ShoppingCartItemDTO {
 
-    private Integer productId;
+public class AddItemToCartDTO {
     private Integer variantId;
-    private String productName;
-    private Double price;
     private Integer amount;
 
 }
+
+
+

@@ -11,7 +11,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDTO {
-
     private UUID keyCloakId;
     private String firstname;
     private String lastname;

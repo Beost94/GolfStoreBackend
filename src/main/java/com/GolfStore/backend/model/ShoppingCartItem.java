@@ -1,11 +1,16 @@
 package com.GolfStore.backend.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
 @Table(name = "shoppingcartitems")
+@AllArgsConstructor
+@NoArgsConstructor
+
 public class ShoppingCartItem {
 
     @EmbeddedId

@@ -1,6 +1,7 @@
 package com.GolfStore.backend.specifications;
 
 
+import com.GolfStore.backend.dto.ProductSearchCriteriaDTO;
 import com.GolfStore.backend.model.Product;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -9,29 +10,44 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
+/*
+    - Denne klassen inneholder metoder som brukes til å bygge en spørring.
+    - Hver metode legger til et ekstre kriterie til spørringen HVIS den blir kalt
+        - For eksempel: Hvis man huker av et spesefikt brand i frontend blir hasAnyBrand metoden aktivert.
 
-/*Denne klassen er egentlig bare for å definere metoder for å bygge sql spørringer. Man kaller disse metodene
-* etter behov for hva man trenger å legge til i sql spørringen.  */
+    - Hele flyten: En bruker velger Tshirt som kategori av produkter, deretter huker man av brand Adidas og Nike
+    - De velger ingen ytterligere kriterier.
+    - I frontend blir det da dynamisk generert query parametere i endpointet.
+        - For eksempel: http://localhost:8080/products/MenuGrid?category=Tshirt&Brand=Adidas&Brand=Nike
+            - "?category=Tshirt&Brand=Adidas&Brand=Nike" er parameterne.
+    - ProductController mottar da disse parameterne i endpointet, og mapper disse inn i en DTO som heter ProductSearchCriteriaDTO.
+    - ProductSearchCriteriaDTO er et objekt som inneholder alle kriteriene som er mulig for produktene og ser slik ut:
+    -   private String category;
+        private List<String> brand;
+        private List<String> size;
+        private List<String> color;
+        private Double minPrice;
+        private Double maxPrice;
+    - Når
+
+
+ */
+
 public class ProductSpecification {
 
-    /*Hver metode her er en "filter generator". De lager WHERE conditions til spørringen.
-    Ser på hasCategory. Denne delen lager WHERE categoryName = x.  Man bygger spørringen med disse.
-     Denne returnerer altså bare mer eller mindre WHERE. Altså hvis man får en get forespørsel
-     som inneholder category parameter, kjøres denne metoden og den legger til WHERE categoryName = x
-     i spørringen som blir gjort mot databasen. */
-
-    /* root.get("category").get(categoryname"), category
-     * Dette blir da finn categoryname attributtet i category tabellen, og er lik category. category er
-     * parameteren som blir overført hit, det kan feks være golfkølle.*/
+    //Specification methods
     public static Specification<Product> hasCategory(String category) {
         return (root, query, cb) ->
                 category != null ? cb.equal(root.get("category").get("categoryName"), category) : null;
     }
 
-    public static Specification<Product> hasBrand(String brandName) {
-        return (root, query, cb) ->
-                brandName != null ? cb.equal(root.get("brand").get("brandName"), brandName) : null;
-
+    public static Specification<Product> hasAnyBrand(List<String> brandNames) {
+        return (root, query, cb) -> {
+            if (brandNames == null || brandNames.isEmpty()) {
+                return null;
+            }
+            return root.get("brand").get("brandName").in(brandNames);
+        };
     }
 
     public static Specification<Product> hasPriceBetween(Double minPrice, Double maxPrice) {
@@ -49,6 +65,7 @@ public class ProductSpecification {
             }
         };
     }
+
     public static Specification<Product> hasVariantAttribute(String attributeType, List<String> values) {
         return (root, query, cb) -> {
             if (values == null || values.isEmpty() || attributeType == null) {
@@ -88,8 +105,43 @@ public class ProductSpecification {
         };
     }
 
+    // Filtrer produkter som inneholder søkeordet i navnet. lagt til av Lars
+    public static Specification<Product> hasSearchTerm(String search) {
+        return (root, query, cb) -> {
+            String likePattern = "%" + search.toLowerCase() + "%";
+            return cb.like(cb.lower(root.get("productName")), likePattern);
+        };
+    }
 
 
+    //Specification builder/Criteria builder
+    public static Specification<Product> ProductCriteriaBuilder(ProductSearchCriteriaDTO criteria) {
+
+        Specification<Product> spec = Specification.where(null);
+        if (criteria.getCategory() != null) {
+            spec = spec.and(ProductSpecification.hasCategory(criteria.getCategory()));
+        }
+
+        if (criteria.getBrand() != null && !criteria.getBrand().isEmpty()) {
+            spec = spec.and(ProductSpecification.hasAnyBrand(criteria.getBrand()));
+        }
+
+        if (criteria.getSize() != null && !criteria.getSize().isEmpty()) {
+            spec = spec.and(ProductSpecification.hasVariantAttribute("Size", criteria.getSize()));
+        }
+
+        if (criteria.getColor() != null && !criteria.getColor().isEmpty()) {
+            spec = spec.and(ProductSpecification.hasVariantAttribute("Color", criteria.getColor()));
+        }
+        if (criteria.getMinPrice() != null || criteria.getMaxPrice() != null) {
+            spec = spec.and(ProductSpecification.hasPriceBetween(criteria.getMinPrice(), criteria.getMaxPrice()));
+        }
+        if (criteria.getSearch() != null && !criteria.getSearch().isEmpty()) {
+            spec = spec.and(ProductSpecification.hasSearchTerm(criteria.getSearch()));
+        }
+        return spec;
+
+    }
 }
 
 

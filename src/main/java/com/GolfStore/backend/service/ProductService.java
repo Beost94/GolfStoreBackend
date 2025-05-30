@@ -1,16 +1,13 @@
 package com.GolfStore.backend.service;
 
-import com.GolfStore.backend.dto.FilterOptionDTO;
-import com.GolfStore.backend.dto.MenuGridProductDTO;
-import com.GolfStore.backend.dto.PageResponseDTO;
-import com.GolfStore.backend.dto.ProductDetailDTO;
+import com.GolfStore.backend.DTOMapper.DTOMapper;
+import com.GolfStore.backend.dto.*;
 import com.GolfStore.backend.model.CategoryFilterOption;
-import com.GolfStore.backend.model.FilterValue;
-import com.GolfStore.backend.model.Images;
 import com.GolfStore.backend.model.Product;
 import com.GolfStore.backend.repository.CategoryFilterOptionRepository;
 import com.GolfStore.backend.repository.ProductRepository;
 import com.GolfStore.backend.specifications.ProductSpecification;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,113 +25,55 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryFilterOptionRepository categoryFilterOptionRepository;
-
-
+    private final DTOMapper dtoMapper;
 
     public PageResponseDTO<MenuGridProductDTO> getProductsForMenuGrid(
-            String category,
-            String brand,
-            Double minPrice,
-            Double maxPrice,
-            List<String> sizes,
-            List<String> colors,
+            ProductSearchCriteriaDTO criteria,
             int page,
             int size
-    )
-    {
+    ) {
+        //Bygger spørringen som skal bli brukt for å hente produkter basert på valgte filter.
+        Specification<Product> spec = ProductSpecification.ProductCriteriaBuilder(criteria);
 
-        Specification<Product> spec = Specification.where(null);
-
-        if (category != null) {
-            spec = spec.and(ProductSpecification.hasCategory(category));
-        }
-
-        if (brand != null) {
-            spec = spec.and(ProductSpecification.hasBrand(brand));
-        }
-
-        if (sizes != null && !sizes.isEmpty()) {
-            spec = spec.and(ProductSpecification.hasVariantAttribute("Size", sizes));
-        }
-
-        if (colors != null && !colors.isEmpty()) {
-            spec = spec.and(ProductSpecification.hasVariantAttribute("Color", colors));
-        }
-        if (minPrice != null || maxPrice != null){
-            spec = spec.and(ProductSpecification.hasPriceBetween(minPrice,maxPrice));
-
-    }
-
-
+        //Lager pageable objektet, som skal holde styr på antall sider og antall rader for hver side.
         Pageable pageable = PageRequest.of(page, size);
+
+        //Henter produkter for menuGrid, med den spesefikke spørringen og pageable.
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
+        //Det vil hentes mange produkter og alle produktene som hentes på konverteres til DTO's.
+        //Her itererer man over alle resultatene fra spørringen, og konverterer alle til en DTO, og legger disse inn i en liste.
         List<MenuGridProductDTO> dtos = productPage.getContent().stream()
-                .map(this::convertToMenuGridDTO)
-                .collect(Collectors.toList());
+                    .map(dtoMapper::mapToDTOMenuGrid)
+                    .collect(Collectors.toList());
 
-        return PageResponseDTO.of(productPage, dtos);
-    }
+        //Endelige resultatet returneres. med pagination metadata og en liste med dto'er
+            return PageResponseDTO.of(productPage, dtos);
 
+       }
     public ProductDetailDTO getProductsForProductDetail(Integer productId) {
+        //Henter produkt med gitt product id fra productRepository.
+        //Bruker Optional wrapper for å sikre oss mot null feil.
         Optional<Product> productOpt = productRepository.findById(productId);
+        //Sjekker om det faktisk fant noe i databasen, hvis den ikke finner kaster den en feilmelding
         if (productOpt.isEmpty()) {
-            throw new IllegalArgumentException("Produkt ikke funnet for ID: " + productId);
+            throw new EntityNotFoundException("Produkt ikke funnet for ID: " + productId);
         }
-        return convertToProductDetailDTO(productOpt.get());
-    }
-
-    private MenuGridProductDTO convertToMenuGridDTO(Product product) {
-        return new MenuGridProductDTO(
-                product.getProductId(),
-                product.getProductName(),
-                product.getPrice(),
-                product.getBrand().getBrandName(),
-                !product.getImages().isEmpty() ? product.getImages().get(0).getImageUrl() : null
-        );
-    }
-
-    private ProductDetailDTO convertToProductDetailDTO(Product product) {
-        return new ProductDetailDTO(
-                product.getProductId(),
-                product.getProductName(),
-                product.getPrice(),
-                product.getDescription(),
-                product.getBrand().getBrandName(),
-                product.getCategory().getCategoryName(),
-                product.getHasVariants(),
-                product.getImages().stream()
-                        .map(Images::getImageUrl) //
-                        .collect(Collectors.toList())
-        );
-    }
-
-    public List<FilterOptionDTO> convertToFilterOptionDTO(List<CategoryFilterOption> cfos){
-        List<FilterOptionDTO> filterOptionDTOList = new ArrayList<>();
-
-        for(CategoryFilterOption cfo: cfos){
-            FilterOptionDTO filterOptionDTO = new FilterOptionDTO(
-                    cfo.getFilterOption().getFilterName(),
-                    cfo.getFilterOption().getFilterValues()
-                            .stream().map(FilterValue::getFilterValue)
-                            .collect(Collectors.toList())
-            );
-            filterOptionDTOList.add(filterOptionDTO);
-        }
-        return filterOptionDTOList;
-
+        //Hvis man finner et produkt med gitt produkt id, konverteres dette til en DTO og returneres til controller
+        return dtoMapper.mapToDTOProductDetail(productOpt.get());
     }
 
     public List<FilterOptionDTO> getFilterOptionsForCategory(String category){
+        if (category == null || category.isEmpty()){
+            throw new IllegalArgumentException("Category can not be empty");
+        }
         List<CategoryFilterOption> categoryFilterOption = categoryFilterOptionRepository.findByCategory_CategoryName(category);
-
-        return convertToFilterOptionDTO(categoryFilterOption);
+        if(categoryFilterOption.isEmpty()){
+            throw new EntityNotFoundException("No filter options found for category: " + category);
+        }
+        return dtoMapper.mapToDTOFilterOptions(categoryFilterOption);
 
         }
-
-
-
-
-
     }
+
 
