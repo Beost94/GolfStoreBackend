@@ -37,9 +37,19 @@ public class ProductSpecification {
 
     //Specification methods
     public static Specification<Product> hasCategory(String category) {
-        return (root, query, cb) ->
-                category != null ? cb.equal(root.get("category").get("categoryName"), category) : null;
+        return (root, query, cb) -> {
+            if (category == null) return null;
+
+            var categoryJoin = root.join("category");
+            var parentJoin = categoryJoin.join("parentCategory", JoinType.LEFT); // use LEFT JOIN for null parents
+
+            return cb.or(
+                    cb.equal(categoryJoin.get("categoryname"), category),
+                    cb.equal(parentJoin.get("categoryname"), category)
+            );
+        };
     }
+
 
     public static Specification<Product> hasAnyBrand(List<String> brandNames) {
         return (root, query, cb) -> {

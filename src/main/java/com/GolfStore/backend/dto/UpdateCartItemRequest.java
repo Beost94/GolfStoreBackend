@@ -15,4 +15,5 @@ public class UpdateCartItemRequest {
     Integer variantId;
     @NotBlank
     String action;
+
 }
