@@ -16,7 +16,7 @@ public class Category {
     @Column(name = "categoryid")
     private Integer categoryId;
 
-    @Column(name = "categoryname", length = 50, unique = true)
+    @Column(name = "category", length = 50, unique = true)
     private String categoryName;
 
     @ManyToOne

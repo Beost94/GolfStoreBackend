@@ -44,8 +44,8 @@ public class ProductSpecification {
             var parentJoin = categoryJoin.join("parentCategory", JoinType.LEFT); // use LEFT JOIN for null parents
 
             return cb.or(
-                    cb.equal(categoryJoin.get("categoryname"), category),
-                    cb.equal(parentJoin.get("categoryname"), category)
+                    cb.equal(categoryJoin.get("categoryName"), category),
+                    cb.equal(parentJoin.get("categoryName"), category)
             );
         };
     }
