@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/products")
@@ -67,6 +68,24 @@ public class ProductController {
         return ResponseEntity.ok(options);
     }
 
+
+
+
+//EKSPERIMENTELT
+
+    // ProductController.java (utvidelse)
+    @GetMapping("/available-filter-values/{productId}")
+    @Operation(summary = "Available filter values for product", description = "Returnerer en liste over tilgjengelige verdier (som finnes på lager) for et produkt.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Verdier hentet"),
+            @ApiResponse(responseCode = "204", description = "Ingen verdier funnet for produkt"),
+            @ApiResponse(responseCode = "500", description = "Intern feil")
+    })
+    public ResponseEntity<Map<String, List<String>>> getAvailableFilterValues(@PathVariable Integer productId) {
+        Map<String, List<String>> result = productService.getAvailableFilterValuesForProduct(productId);
+        if (result.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(result);
+    }
 
 
 

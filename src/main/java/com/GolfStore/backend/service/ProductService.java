@@ -4,6 +4,8 @@ import com.GolfStore.backend.DTOMapper.DTOMapper;
 import com.GolfStore.backend.dto.*;
 import com.GolfStore.backend.model.CategoryFilterOption;
 import com.GolfStore.backend.model.Product;
+import com.GolfStore.backend.model.ProductVariant;
+import com.GolfStore.backend.model.VariantAttribute;
 import com.GolfStore.backend.repository.CategoryFilterOptionRepository;
 import com.GolfStore.backend.repository.ProductRepository;
 import com.GolfStore.backend.specifications.ProductSpecification;
@@ -15,8 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,6 +75,41 @@ public class ProductService {
         return dtoMapper.mapToDTOFilterOptions(categoryFilterOption);
 
         }
+
+
+
+        //EKSPERIMENTELT
+
+    public Map<String, List<String>> getAvailableFilterValuesForProduct(Integer productId) {
+        Optional<Product> productOpt = productRepository.findById(productId);
+        if (productOpt.isEmpty()) {
+            throw new EntityNotFoundException("Produkt ikke funnet for ID: " + productId);
+        }
+
+        Product product = productOpt.get();
+        List<ProductVariant> variants = product.getProductVariants();
+
+        Map<String, Set<String>> tempMap = new HashMap<>();
+
+        for (ProductVariant variant : variants) {
+            for (VariantAttribute attr : variant.getAttributes()) {
+                String optionName = attr.getFilterOption().getFilterName();
+                String value = attr.getFilterValue().getFilterValue();
+
+                tempMap.computeIfAbsent(optionName, k -> new HashSet<>()).add(value);
+            }
+        }
+
+        // Konverterer Set til List for responsen
+        Map<String, List<String>> result = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : tempMap.entrySet()) {
+            result.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+
+        return result;
+    }
+
+
     }
 
 
