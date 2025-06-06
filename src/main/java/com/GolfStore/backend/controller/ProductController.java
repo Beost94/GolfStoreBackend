@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -87,6 +88,21 @@ public class ProductController {
         return ResponseEntity.ok(result);
     }
 
+
+    //VEELDIG EKSPERIMENTELT.
+
+    @GetMapping("/AvailableAttributes")
+    public ResponseEntity<GetAvailableAttributeValuesDTO> getAvailableAttributes(
+            @RequestParam Integer productId,
+            @RequestParam(required = false) String mainAttribute
+    ) {
+        FindAvailableAttributeValuesDTO faaDTO = new FindAvailableAttributeValuesDTO();
+        faaDTO.setProductId(productId);
+        if (mainAttribute != null) {
+            faaDTO.setMainAttribute(Collections.singletonList(mainAttribute));
+        }
+        return ResponseEntity.ok(productService.getAvailableAttributeValues(faaDTO));
+    }
 
 
 

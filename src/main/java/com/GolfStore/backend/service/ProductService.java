@@ -45,13 +45,14 @@ public class ProductService {
         //Det vil hentes mange produkter og alle produktene som hentes på konverteres til DTO's.
         //Her itererer man over alle resultatene fra spørringen, og konverterer alle til en DTO, og legger disse inn i en liste.
         List<MenuGridProductDTO> dtos = productPage.getContent().stream()
-                    .map(dtoMapper::mapToDTOMenuGrid)
-                    .collect(Collectors.toList());
+                .map(dtoMapper::mapToDTOMenuGrid)
+                .collect(Collectors.toList());
 
         //Endelige resultatet returneres. med pagination metadata og en liste med dto'er
-            return PageResponseDTO.of(productPage, dtos);
+        return PageResponseDTO.of(productPage, dtos);
 
-       }
+    }
+
     public ProductDetailDTO getProductsForProductDetail(Integer productId) {
         //Henter produkt med gitt product id fra productRepository.
         //Bruker Optional wrapper for å sikre oss mot null feil.
@@ -64,21 +65,20 @@ public class ProductService {
         return dtoMapper.mapToDTOProductDetail(productOpt.get());
     }
 
-    public List<FilterOptionDTO> getFilterOptionsForCategory(String category){
-        if (category == null || category.isEmpty()){
+    public List<FilterOptionDTO> getFilterOptionsForCategory(String category) {
+        if (category == null || category.isEmpty()) {
             throw new IllegalArgumentException("Category can not be empty");
         }
         List<CategoryFilterOption> categoryFilterOption = categoryFilterOptionRepository.findByCategory_CategoryName(category);
-        if(categoryFilterOption.isEmpty()){
+        if (categoryFilterOption.isEmpty()) {
             throw new EntityNotFoundException("No filter options found for category: " + category);
         }
         return dtoMapper.mapToDTOFilterOptions(categoryFilterOption);
 
-        }
+    }
 
 
-
-        //EKSPERIMENTELT
+    //EKSPERIMENTELT
 
     public Map<String, List<String>> getAvailableFilterValuesForProduct(Integer productId) {
         Optional<Product> productOpt = productRepository.findById(productId);
@@ -109,7 +109,107 @@ public class ProductService {
         return result;
     }
 
+    //VEELDIG EKSPERIMENTELT
 
+/*
+  Henter tilgjengelige attributtverdier (hoved- og sekundæreattributter) for et gitt produkt.
+
+  Bruk:
+  - Hvis kun produktId er angitt: returner en liste over alle *hovedattributter* (f.eks. "Color", "Flex") som finnes blant variantene til produktet.
+  - Hvis både produktId og én valgt hovedattributtverdi (f.eks. "Blue") er angitt: finn hvilke *sekundæreattributter* (f.eks. "Size", "Loft") som finnes
+    blant variantene som har den valgte hovedattributtverdien.
+
+  Eksempel:
+  - Produkt 132 har varianter med attributter (Color: Blue, Size: Small), (Color: Blue, Size: Medium), (Color: Red, Size: Small)
+    - Hvis "productId=132": returneres mainAttributes = ["Blue", "Red"]
+    - Hvis "productId=132&mainAttribute=Blue": returneres secondaryAttributes = ["Small", "Medium"]
+   */
+
+    public GetAvailableAttributeValuesDTO getAvailableAttributeValues(FindAvailableAttributeValuesDTO dto) {
+        Optional<Product> productOpt = productRepository.findById(dto.getProductId());
+        if (productOpt.isEmpty()) {
+            throw new EntityNotFoundException("Produkt ikke funnet for ID: " + dto.getProductId());
+        }
+
+        Product product = productOpt.get();
+        List<ProductVariant> variants = product.getProductVariants();
+
+        List<String> mainAttributeList = new ArrayList<>();
+        List<String> secondaryAttributeList = new ArrayList<>();
+
+        String mainAttributeName = null;
+        String secondaryAttributeName = null;
+
+        // Hent navnene på attributtene fra første variant
+        if (!variants.isEmpty()) {
+            List<VariantAttribute> firstAttributes = variants.get(0).getAttributes();
+            for (VariantAttribute attr : firstAttributes) {
+                if (attr.getFilterOption().isMainAttribute()) {
+                    mainAttributeName = attr.getFilterOption().getFilterName();
+                } else {
+                    secondaryAttributeName = attr.getFilterOption().getFilterName();
+                }
+            }
+        }
+
+        if (dto.getMainAttribute() == null || dto.getMainAttribute().isEmpty()) {
+            Set<String> mainSet = new HashSet<>();
+
+            for (ProductVariant variant : variants) {
+                List<VariantAttribute> attributes = variant.getAttributes();
+
+                for (VariantAttribute attr : attributes) {
+                    if (attr.getFilterOption().isMainAttribute()) {
+                        String value = attr.getFilterValue().getFilterValue();
+                        mainSet.add(value);
+                    }
+                }
+            }
+
+            mainAttributeList.addAll(mainSet);
+        } else {
+            Set<String> secondarySet = new HashSet<>();
+
+            for (ProductVariant variant : variants) {
+                boolean hasMainMatch = false;
+                List<VariantAttribute> attributes = variant.getAttributes();
+
+                for (VariantAttribute attr : attributes) {
+                    if (attr.getFilterOption().isMainAttribute()) {
+                        String value = attr.getFilterValue().getFilterValue();
+                        if (dto.getMainAttribute().contains(value)) {
+                            hasMainMatch = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasMainMatch) {
+                    for (VariantAttribute attr : attributes) {
+                        if (!attr.getFilterOption().isMainAttribute()) {
+                            String value = attr.getFilterValue().getFilterValue();
+                            secondarySet.add(value);
+                        }
+                    }
+                }
+            }
+
+            secondaryAttributeList.addAll(secondarySet);
+        }
+
+        return new GetAvailableAttributeValuesDTO(
+                mainAttributeName,
+                secondaryAttributeName,
+                mainAttributeList,
+                secondaryAttributeList
+        );
     }
+
+
+
+
+
+}
+
 
 

@@ -20,5 +20,8 @@ public class FilterOption {
 
     @OneToMany(mappedBy = "filterOption")
     private List<FilterValue> filterValues;
+
+    @Column(name="is_main_attribute")
+    private boolean isMainAttribute;
 }
 
