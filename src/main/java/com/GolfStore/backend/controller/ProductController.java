@@ -2,6 +2,7 @@ package com.GolfStore.backend.controller;
 //TEST-MASTER
 
 import com.GolfStore.backend.dto.*;
+import com.GolfStore.backend.dto.ProductDTOs.ProductWithVariantsDTO;
 import com.GolfStore.backend.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -102,6 +103,16 @@ public class ProductController {
             faaDTO.setMainAttribute(Collections.singletonList(mainAttribute));
         }
         return ResponseEntity.ok(productService.getAvailableAttributeValues(faaDTO));
+    }
+
+    @PostMapping("/GetAvailableVariants")
+    public ResponseEntity<Integer> getAvailableVariants(@RequestBody GetVariantDTO getVariantDTO){
+        return ResponseEntity.ok(productService.getVariant(getVariantDTO));
+    }
+
+    @GetMapping("/GetProductDetail/{productId}")
+    public ResponseEntity<ProductWithVariantsDTO> getProductDetail(@PathVariable Integer productId){
+        return ResponseEntity.ok(productService.getProductWithVariants(productId));
     }
 
 

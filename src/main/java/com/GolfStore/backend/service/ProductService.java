@@ -2,10 +2,11 @@ package com.GolfStore.backend.service;
 
 import com.GolfStore.backend.DTOMapper.DTOMapper;
 import com.GolfStore.backend.dto.*;
-import com.GolfStore.backend.model.CategoryFilterOption;
-import com.GolfStore.backend.model.Product;
-import com.GolfStore.backend.model.ProductVariant;
-import com.GolfStore.backend.model.VariantAttribute;
+import com.GolfStore.backend.dto.ProductDTOs.AttributeDTO;
+import com.GolfStore.backend.dto.ProductDTOs.ProductVariantDTO;
+import com.GolfStore.backend.dto.ProductDTOs.ProductWithVariantsDTO;
+import com.GolfStore.backend.dto.ProductRepositoryDTOs.FlatVariantsDTO;
+import com.GolfStore.backend.model.*;
 import com.GolfStore.backend.repository.CategoryFilterOptionRepository;
 import com.GolfStore.backend.repository.ProductRepository;
 import com.GolfStore.backend.specifications.ProductSpecification;
@@ -92,9 +93,9 @@ public class ProductService {
         Map<String, Set<String>> tempMap = new HashMap<>();
 
         for (ProductVariant variant : variants) {
-            for (VariantAttribute attr : variant.getAttributes()) {
+            for (VariantAttribute attr : variant.getVariantAttributes()) {
                 String optionName = attr.getFilterOption().getFilterName();
-                String value = attr.getFilterValue().getFilterValue();
+                String value = attr.getFilterValue().getFiltervalueName();
 
                 tempMap.computeIfAbsent(optionName, k -> new HashSet<>()).add(value);
             }
@@ -109,7 +110,7 @@ public class ProductService {
         return result;
     }
 
-    //VEELDIG EKSPERIMENTELT
+    //VEELDIG EKSPERIMENTELT - DETTE SKAL FJERNES HVIS NY PRODUCTVARIANT METODE FUNKER ----------------
 
 /*
   Henter tilgjengelige attributtverdier (hoved- og sekundæreattributter) for et gitt produkt.
@@ -142,7 +143,7 @@ public class ProductService {
 
         // Hent navnene på attributtene fra første variant
         if (!variants.isEmpty()) {
-            List<VariantAttribute> firstAttributes = variants.get(0).getAttributes();
+            List<VariantAttribute> firstAttributes = variants.get(0).getVariantAttributes();
             for (VariantAttribute attr : firstAttributes) {
                 if (attr.getFilterOption().isMainAttribute()) {
                     mainAttributeName = attr.getFilterOption().getFilterName();
@@ -156,11 +157,11 @@ public class ProductService {
             Set<String> mainSet = new HashSet<>();
 
             for (ProductVariant variant : variants) {
-                List<VariantAttribute> attributes = variant.getAttributes();
+                List<VariantAttribute> attributes = variant.getVariantAttributes();
 
                 for (VariantAttribute attr : attributes) {
                     if (attr.getFilterOption().isMainAttribute()) {
-                        String value = attr.getFilterValue().getFilterValue();
+                        String value = attr.getFilterValue().getFiltervalueName();
                         mainSet.add(value);
                     }
                 }
@@ -172,11 +173,11 @@ public class ProductService {
 
             for (ProductVariant variant : variants) {
                 boolean hasMainMatch = false;
-                List<VariantAttribute> attributes = variant.getAttributes();
+                List<VariantAttribute> attributes = variant.getVariantAttributes();
 
                 for (VariantAttribute attr : attributes) {
                     if (attr.getFilterOption().isMainAttribute()) {
-                        String value = attr.getFilterValue().getFilterValue();
+                        String value = attr.getFilterValue().getFiltervalueName();
                         if (dto.getMainAttribute().contains(value)) {
                             hasMainMatch = true;
                             break;
@@ -187,7 +188,7 @@ public class ProductService {
                 if (hasMainMatch) {
                     for (VariantAttribute attr : attributes) {
                         if (!attr.getFilterOption().isMainAttribute()) {
-                            String value = attr.getFilterValue().getFilterValue();
+                            String value = attr.getFilterValue().getFiltervalueName();
                             secondarySet.add(value);
                         }
                     }
@@ -205,9 +206,87 @@ public class ProductService {
         );
     }
 
+    public Integer getVariant(GetVariantDTO getVariantDTO){
+
+        Integer productId = getVariantDTO.getProductId();
+        String mainAttribute = getVariantDTO.getMainAttribute();
+        String secondaryAttribute = getVariantDTO.getSecondaryAttribute();
+
+        Optional<Product> product = productRepository.findById(productId);
+        //
+        if(product.isPresent()){
+            //Gets a list of all the products variants.
+            List<ProductVariant> productVariants = product.get().getProductVariants();
+            //Iterates over all the productvariants to gather a list of each productvariants filterValuenames(Blue, Large, Stiff Flex etc)
+            for(ProductVariant productVariant: productVariants){
+                //Mapper makes it so we get the filterValueNames from each variantattribute, instead of the entire object.
+                //attr is the variantattribute object, "map that object into a string with the value of filtername from that object instead"
+                List<String> filterValueNames = productVariant.getVariantAttributes().stream().map(attr -> attr.getFilterValue().getFiltervalueName()).collect(Collectors.toList());
+
+                if(filterValueNames.contains(mainAttribute) && filterValueNames.contains(secondaryAttribute)){
+                    return productVariant.getVariantId();
+                }
+
+            }
+        }
+        throw new EntityNotFoundException("Fant ingen variant med begge attributtene");
+
+    }
+// ------------------------------------------------------------------------
+
+    //Hvis denne funker, er det denne som skal brukes til å hente produkt info, og alle varianter.
+
+    public ProductWithVariantsDTO getProductWithVariants(Integer productid){
+
+        //Gets the rows of data from the repository.
+        List<FlatVariantsDTO> flatVariantsDTOS = productRepository.findVariantsByProductId(productid);
+        Optional<Product> product = productRepository.findById(productid);
+        if(product.isEmpty()){
+            throw new EntityNotFoundException("Product not found");
+        }
+
+        //Manually sets general info about the product.
+        ProductWithVariantsDTO productWithVariantsDTO = new ProductWithVariantsDTO();
+        productWithVariantsDTO.setProductName(product.get().getProductName());
+        productWithVariantsDTO.setPrice(product.get().getPrice());
+        productWithVariantsDTO.setDescription(product.get().getDescription());
+        productWithVariantsDTO.setImageUrls(
+                product.get().getImages().stream().map(Images::getImageUrl).toList());
 
 
+        //Nå trenger vi å fylle en variant liste, for å legge inn i product
 
+        Map<Integer, List<AttributeDTO>> variantMap = new LinkedHashMap<>();
+
+        //Groups attributes by variantId
+        for (FlatVariantsDTO row : flatVariantsDTOS){
+            Integer variantId = row.getVariantId();
+            AttributeDTO attributeDTO = new AttributeDTO(
+                    row.getAttributeName(),
+                    row.getAttributeValue(),
+                    row.isMainAttribute()
+            );
+
+            //Checks if a key with variantId exist, if not, make a new key value pair for it.
+            if (!variantMap.containsKey(variantId)){
+                variantMap.put(variantId, new ArrayList<>());
+            }
+            //puts the list of attributes in that key value pair.
+            variantMap.get(variantId).add(attributeDTO);
+        }
+
+        //Now to build a list of ProductVariantDTO's
+        List<ProductVariantDTO> productVariantDTOS = new ArrayList<>();
+        for (Map.Entry<Integer, List<AttributeDTO>> entry : variantMap.entrySet()) {
+            productVariantDTOS.add(new ProductVariantDTO(entry.getKey(), entry.getValue()));
+        }
+
+        productWithVariantsDTO.setVariants(productVariantDTOS);
+
+        return productWithVariantsDTO;
+
+
+    }
 
 }
 

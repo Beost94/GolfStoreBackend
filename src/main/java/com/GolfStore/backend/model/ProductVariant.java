@@ -24,7 +24,7 @@ public class ProductVariant {
     private Product product; //
 
     @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL)
-    private List<VariantAttribute> attributes; //
+    private List<VariantAttribute> variantAttributes; //
 }
 
 

@@ -56,7 +56,7 @@ public class DTOMapper {
             FilterOptionDTO filterOptionDTO = new FilterOptionDTO(
                     cfo.getFilterOption().getFilterName(),
                     cfo.getFilterOption().getFilterValues()
-                            .stream().map(FilterValue::getFilterValue)
+                            .stream().map(FilterValue::getFiltervalueName)
                             .collect(Collectors.toList())
             );
             filterOptionDTOList.add(filterOptionDTO);

@@ -20,6 +20,6 @@ public class FilterValue {
     private FilterOption filterOption;
 
     @Column(name = "filter_value")
-    private String filterValue;
+    private String filtervalueName;
 
 }
