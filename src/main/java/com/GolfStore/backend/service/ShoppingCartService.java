@@ -1,8 +1,8 @@
 package com.GolfStore.backend.service;
 
-import com.GolfStore.backend.dto.ShoppingCartDTO;
-import com.GolfStore.backend.dto.ShoppingCartItemDTO;
-import com.GolfStore.backend.dto.UpdateCartItemRequest;
+import com.GolfStore.backend.DTOMapper.DTOMapper;
+import com.GolfStore.backend.dto.CartDTOs.ShoppingCartDTO;
+import com.GolfStore.backend.dto.CartDTOs.UpdateCartItemRequest;
 import com.GolfStore.backend.model.*;
 import com.GolfStore.backend.repository.ShoppingCartItemRepository;
 import com.GolfStore.backend.repository.StockRepository;
@@ -11,7 +11,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,48 +21,22 @@ public class ShoppingCartService {
     private final ShoppingCartItemRepository shoppingCartItemRepository;
     private final UserRepository userRepository;
     private final StockRepository stockRepository;
+    private final DTOMapper dtoMapper;
 
+    public ShoppingCartDTO getShoppingCart(UUID keycloakId) {
+        User user = userRepository.findById(keycloakId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with given ID"));
 
-    public ShoppingCartDTO getShoppingCart(UUID keycloakId){
-        User user = userRepository.findById(keycloakId).orElse(null);
-        if(user == null){
-            throw new EntityNotFoundException("User not found with given ID");
+        ShoppingCart cart = user.getShoppingCart();
+        if (cart == null) {
+            throw new EntityNotFoundException("No Shoppingcart registered to that user");
         }
-            ShoppingCart cart = user.getShoppingCart();
-            if(cart == null){
-                throw new EntityNotFoundException("No Shoppingcart registered to that user");
-            }
 
-            List<ShoppingCartItem> items = shoppingCartItemRepository.findByShoppingCart_User_KeycloakId(keycloakId);
-
-            return convertToShoppingCartDTO(cart, items);
-
-    }
-
-    public ShoppingCartDTO convertToShoppingCartDTO(ShoppingCart cart, List<ShoppingCartItem> shoppingCartItems) {
-        List<ShoppingCartItemDTO> itemDTOs = convertToShoppingCartItemDTO(shoppingCartItems);
-        return new ShoppingCartDTO(cart.getShoppingCartId(), itemDTOs);
-    }
-
-    public List <ShoppingCartItemDTO> convertToShoppingCartItemDTO(List<ShoppingCartItem> shoppingCartItems){
-        List <ShoppingCartItemDTO> shoppingCartItemDTOS = new ArrayList<>();
-        for (ShoppingCartItem item : shoppingCartItems) {
-            ProductVariant variant = item.getProductVariant();
-            Product product = variant.getProduct();
-
-            shoppingCartItemDTOS.add(new ShoppingCartItemDTO(
-                    product.getProductId(),
-                    variant.getVariantId(),
-                    product.getProductName(),
-                    product.getPrice(),
-                    item.getAmount()
-            ));
-        }
-        return shoppingCartItemDTOS;
+        List<ShoppingCartItem> items = shoppingCartItemRepository.findByShoppingCart_User_KeycloakId(keycloakId);
+        return dtoMapper.mapToShoppingCartDTO(cart, items);
     }
 
     public void updateCartItem(UUID keycloakId, UpdateCartItemRequest request) {
-
         User user = userRepository.findById(keycloakId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
@@ -72,7 +45,6 @@ public class ShoppingCartService {
         ShoppingCartItem item = shoppingCartItemRepository.findById(itemKey).orElse(null);
 
         if (item == null && request.getAction().equalsIgnoreCase("add")) {
-
             ProductVariant variant = new ProductVariant();
             variant.setVariantId(request.getVariantId());
 
@@ -99,11 +71,9 @@ public class ShoppingCartService {
                 } else {
                     shoppingCartItemRepository.delete(item);
                 }
+            } else if (request.getAction().equalsIgnoreCase("delete")) {
+                shoppingCartItemRepository.delete(item);
             }
         }
     }
-    }
-
-
-
-
+}

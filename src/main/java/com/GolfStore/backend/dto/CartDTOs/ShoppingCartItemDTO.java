@@ -1,4 +1,4 @@
-package com.GolfStore.backend.dto;
+package com.GolfStore.backend.dto.CartDTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,5 +12,6 @@ public class ShoppingCartItemDTO {
     private String productName;
     private Double price;
     private Integer amount;
+    private String imageUrl;
 
 }

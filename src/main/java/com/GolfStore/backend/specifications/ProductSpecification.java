@@ -1,7 +1,7 @@
 package com.GolfStore.backend.specifications;
 
 
-import com.GolfStore.backend.dto.ProductSearchCriteriaDTO;
+import com.GolfStore.backend.dto.ProductDTOs.ProductSearchCriteriaDTO;
 import com.GolfStore.backend.model.Product;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;

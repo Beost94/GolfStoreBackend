@@ -1,4 +1,4 @@
-package com.GolfStore.backend.dto;
+package com.GolfStore.backend.dto.CartDTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
