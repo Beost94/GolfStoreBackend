@@ -1,4 +1,4 @@
-package com.GolfStore.backend.dto;
+package com.GolfStore.backend.dto.UserDTOs;
 
 
 import lombok.AllArgsConstructor;

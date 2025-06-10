@@ -1,6 +1,7 @@
 package com.GolfStore.backend.service;
 
-import com.GolfStore.backend.dto.UserDTO;
+import com.GolfStore.backend.DTOMapper.DTOMapper;
+import com.GolfStore.backend.dto.UserDTOs.UserDTO;
 import com.GolfStore.backend.model.ShoppingCart;
 import com.GolfStore.backend.model.User;
 import com.GolfStore.backend.repository.UserRepository;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-
+    private final DTOMapper dtoMapper;
 
    /*
     This method is for getting userdata in the form of a userDTO AND posting the users data to the database, if its the first time they visit this endpoint.
@@ -45,17 +46,7 @@ public class UserService {
             User newUser = createUserFromJwt(jwt);
             return userRepository.save(newUser);
         });
-        return convertToDTO(user);
-    }
-    public UserDTO convertToDTO(User user) {
-        return new UserDTO(
-                user.getKeycloakId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getAddress(),
-                user.getPhone()
-        );
+        return dtoMapper.mapToUserDTO(user);
     }
 
     public User createUserFromJwt(Jwt jwt) {

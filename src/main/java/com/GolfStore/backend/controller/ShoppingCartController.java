@@ -1,7 +1,7 @@
 package com.GolfStore.backend.controller;
 
-import com.GolfStore.backend.dto.ShoppingCartDTO;
-import com.GolfStore.backend.dto.UpdateCartItemRequest;
+import com.GolfStore.backend.dto.CartDTOs.ShoppingCartDTO;
+import com.GolfStore.backend.dto.CartDTOs.UpdateCartItemRequest;
 import com.GolfStore.backend.repository.StockRepository;
 import com.GolfStore.backend.service.ShoppingCartService;
 import io.swagger.v3.oas.annotations.Operation;
