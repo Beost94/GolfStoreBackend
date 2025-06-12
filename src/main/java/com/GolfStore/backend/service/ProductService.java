@@ -11,6 +11,7 @@ import com.GolfStore.backend.model.CategoryFilterOption;
 import com.GolfStore.backend.model.Product;
 import com.GolfStore.backend.repository.CategoryFilterOptionRepository;
 import com.GolfStore.backend.repository.ProductRepository;
+
 import com.GolfStore.backend.specifications.ProductSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +65,6 @@ public class ProductService {
 
     }
 
-
     @Transactional(readOnly = true)
     public List<FilterOptionDTO> getFilterOptionsForCategory(String category) {
         log.info("Retrieving filter options for category: '{}'", category);
@@ -77,9 +77,7 @@ public class ProductService {
             throw new EntityNotFoundException("No filter options found for category: " + category);
 
         }
-
         log.info("Mapped {} filter options for category: '{}'", categoryFilterOption.size(), category);
-
 
         return dtoMapper.mapToDTOFilterOptions(categoryFilterOption);
 
@@ -91,7 +89,6 @@ public class ProductService {
         Product product = productRepository.findById(productid)
                 .orElseThrow(() -> new EntityNotFoundException("product with productid: " + productid + " not found."));
 
-
         List<FlatVariantsDTO> flatVariantsDTOS = productRepository.findVariantsByProductId(productid);
         log.info("Found {} variant rows for product ID {}", flatVariantsDTOS.size(), productid);
         log.debug("Mapped product and variants to ProductWithVariantsDTO");
@@ -101,8 +98,11 @@ public class ProductService {
         return productWithVariantsDTO;
     }
 
-
 }
+
+
+
+
 
 
 
