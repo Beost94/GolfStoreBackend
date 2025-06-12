@@ -1,14 +1,18 @@
 version: "3.8"
 
 services:
-  springboot-app:
-    build: .
-    image: my-springboot-app
-    container_name: springboot-app
+  postgres:
+    image: postgres:17
+    container_name: golfstore-postgres
     ports:
-      - "8080:8080"
-    depends_on:
-      - keycloak
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: golfshop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Potetb0dil
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.3
@@ -22,12 +26,24 @@ services:
       - "8180:8080"
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://host.docker.internal:5433/golfshop
+      KC_DB_URL: jdbc:postgresql://postgres:5432/golfshop
       KC_DB_SCHEMA: keycloak
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: Potetb0dil
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+    depends_on:
+      - postgres
 
+  springboot-app:
+    build: .
+    image: my-springboot-app
+    container_name: springboot-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - keycloak
 
-
+volumes:
+  pgdata:
