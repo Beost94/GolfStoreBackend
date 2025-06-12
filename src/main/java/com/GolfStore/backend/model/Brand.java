@@ -1,20 +1,22 @@
-package com.GolfStore.backend.model;
+    package com.GolfStore.backend.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+    import jakarta.persistence.*;
+    import lombok.*;
 
-@Entity
-@Table(name = "brand")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Brand {
+    @Entity
+    @Table(name = "brand")
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "brandid")
-    private Integer brandId;
+    public class Brand {
 
-    @Column(name = "brand_name", length = 50)
-    private String brandName;
-}
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "brandid")
+        private Integer brandId;
+
+        @Column(name = "brand_name", length = 50)
+        private String brandName;
+    }

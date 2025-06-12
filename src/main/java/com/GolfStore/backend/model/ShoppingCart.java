@@ -3,16 +3,21 @@ package com.GolfStore.backend.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
+
 @Entity
 @Table(name = "shoppingcart")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+
 public class ShoppingCart {
 
 

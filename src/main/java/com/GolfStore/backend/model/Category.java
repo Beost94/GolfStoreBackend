@@ -6,9 +6,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "category")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Category {
 
     @Id

@@ -2,11 +2,17 @@ package com.GolfStore.backend.model;
 
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "filter_values")
-@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 
 public class FilterValue {
 

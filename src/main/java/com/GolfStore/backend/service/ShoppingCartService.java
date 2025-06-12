@@ -23,6 +23,8 @@ public class ShoppingCartService {
     private final StockRepository stockRepository;
     private final DTOMapper dtoMapper;
 
+    //Method for retrieving a specific shoppingcart connected to the user.
+    //It recieves a keycloak id, and find the correct shoppingcart for the currently logged in user based on it.
     public ShoppingCartDTO getShoppingCart(UUID keycloakId) {
         User user = userRepository.findById(keycloakId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with given ID"));
@@ -31,8 +33,8 @@ public class ShoppingCartService {
         if (cart == null) {
             throw new EntityNotFoundException("No Shoppingcart registered to that user");
         }
-
         List<ShoppingCartItem> items = shoppingCartItemRepository.findByShoppingCart_User_KeycloakId(keycloakId);
+        //sends the shoppingcart entity and the items connected to that shoppingcart to a DTOmapper
         return dtoMapper.mapToShoppingCartDTO(cart, items);
     }
 
@@ -40,7 +42,12 @@ public class ShoppingCartService {
         User user = userRepository.findById(keycloakId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+
         ShoppingCart shoppingCart = user.getShoppingCart();
+        if (shoppingCart == null) {
+            throw new EntityNotFoundException("No Shoppingcart registered to that user");
+        }
+
         ShoppingCartItemKey itemKey = new ShoppingCartItemKey(shoppingCart.getShoppingCartId(), request.getVariantId());
         ShoppingCartItem item = shoppingCartItemRepository.findById(itemKey).orElse(null);
 
@@ -73,6 +80,9 @@ public class ShoppingCartService {
                 }
             } else if (request.getAction().equalsIgnoreCase("delete")) {
                 shoppingCartItemRepository.delete(item);
+            }
+            else {
+                throw new IllegalArgumentException("Invalid action type: " + request.getAction());
             }
         }
     }
