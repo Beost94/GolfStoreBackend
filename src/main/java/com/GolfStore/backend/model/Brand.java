@@ -5,9 +5,11 @@ import lombok.*;
 
 @Entity
 @Table(name = "brand")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
+
 public class Brand {
 
     @Id

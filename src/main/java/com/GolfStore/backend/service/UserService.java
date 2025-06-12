@@ -27,27 +27,13 @@ public class UserService {
    */
     public UserDTO getOrCreateUser(Jwt jwt) {
         UUID keyCloakId = UUID.fromString(jwt.getSubject());
-
-        /*Repositories returnerer alltid Optional<T>.. Det som skjer her med .orElseGet() er litt missvisende i navnet spør du meg.
-        .orElse er en metode for Optional klassen. Optional klassen er en slags failsafe for å ikke returnere null. Den kan holde på alle typer
-        objekter. i dette tilfellet User, Optional<User>. Optional betyr altså egentlig at enten har den noe, eller så har den ikke noe, men ikke null
-        .orElse() sjekker om optional objektet har en verdi, og hvis den har det, tar den ut den verdien og returnerer den, for eksempel et objekt av klassen  User. Hvis det ikke er noe verdi,
-        kan man designere en default verdi. orElse(xxxx) -- Hvis den ikke har en verdi, bruk denne verdien
-        .orElseGet() Så kan man legge til en funksjon som generer en verdi til å returnere, hvis optional objektet ikke holder på noen verdi. Det funker på samme måte som .orElse, bare at default verdien
-        er generert av en funksjon.
-
-        Sååå.... Det som skjer her er da: userRepository kjører findByID metoden, med keyCloakid(det er primærnøkkelen for users). Dette returnerer et Optional<User> objekt. Dette Optional objektet holder da på et User
-        objekt, hvis det fant en user som passer. Hvis den ikke fant noe, holder den ikke på noe. Så kommer .orElseget(). Denne delen henter ut verdien fra Optional<User>. Hvis det er noe i den. Designerer den da
-        User user = user objektet. Hvis den ikke fant noe, så bruker den en default verdi, som er generert med lambda funksjonen. Denne funksjonen lager et nytt objekt av User, med å bruke createUserFromJwt metoden.
-        return userRepository.save(newUser); Lagrer brukeren til databsen, samtidig som den returnerer det til orElseGet.
-
-           */
         User user = userRepository.findById(keyCloakId).orElseGet(() -> {
             User newUser = createUserFromJwt(jwt);
             return userRepository.save(newUser);
         });
         return dtoMapper.mapToUserDTO(user);
     }
+
 
     public User createUserFromJwt(Jwt jwt) {
         User newUser = new User();

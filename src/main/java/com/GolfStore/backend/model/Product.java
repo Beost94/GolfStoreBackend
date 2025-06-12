@@ -2,16 +2,23 @@ package com.GolfStore.backend.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
+//Tried some indexing to test this out, trying to optimize join heavy queries
 @Entity
-@Table(name = "products")
-@Data
+@Table(name = "products",
+indexes = {
+        @Index(name = "idx_products_categoryid", columnList = "categoryid"),
+        @Index(name = "idx_products_brandid", columnList ="brandid")
+})
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Product {
 
     @Id

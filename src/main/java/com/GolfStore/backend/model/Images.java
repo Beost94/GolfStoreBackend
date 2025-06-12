@@ -5,11 +5,11 @@ import lombok.*;
 
 @Entity
 @Table(name = "images")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+
 public class Images {
 
     @Id

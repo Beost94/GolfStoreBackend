@@ -2,8 +2,6 @@ package com.GolfStore.backend.repository;
 
 import com.GolfStore.backend.dto.ProductRepositoryDTOs.FlatVariantsDTO;
 import com.GolfStore.backend.model.Product;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -14,8 +12,16 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
-    Page<Product> findByCategory_CategoryName(String category, Pageable pageable);
 
+    /*
+            -Custom query that grabs all the variant attribute data for a given product,
+            - flattening it out into a list of FlatVariantsDTOs.
+
+            - this is useful because instead of loading the full product + variant + attributes graph and mapping manually,
+            - we just pull the exact fields needed in a single optimized join heavy query.
+
+            - This is used to build the ProductWithVariantsDTO on the service layer.
+     */
 
     @Query("""
     SELECT new com.GolfStore.backend.dto.ProductRepositoryDTOs.FlatVariantsDTO(
@@ -23,7 +29,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
     )
     FROM Product p
     JOIN p.brand b
-    LEFT JOIN p.images i
     JOIN p.productVariants v
     JOIN v.variantAttributes va
     JOIN va.filterOption fo
@@ -33,3 +38,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
     List<FlatVariantsDTO> findVariantsByProductId(@Param("productId") Integer productId);
 
 }
+
+
+
